@@ -5,6 +5,7 @@ import { DragDropContext } from 'react-beautiful-dnd';
 
 const App = () => {
   const [boardState, setBoardState] = useState(initData);
+
   const onDragEnd = (result: any) => {
     const { destination, source, draggableId } = result;
 

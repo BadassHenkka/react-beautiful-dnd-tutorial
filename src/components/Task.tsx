@@ -18,7 +18,25 @@ const Container: any = styled.div<ContainerProps>`
   border-radius: 2px;
   padding: 8px;
   background-color: ${(props) => (props.isDragging ? 'lightgreen' : 'white')};
+  display: flex;
+
+  &:hover {
+    cursor: pointer;
+  }
 `;
+
+// DRAG HANDLE EXAMPLE
+// const Handle: any = styled.div`
+//   border: 1px solid palevioletred;
+//   border-radius: 50%;
+//   background-color: palevioletred;
+//   padding: 8px;
+//   margin-right: 1em;
+
+//   &:hover {
+//     cursor: pointer;
+//   }
+// `;
 
 /*
 1. Draggable components are the ones which you can drag.
@@ -44,6 +62,7 @@ const Task: FunctionComponent<TaskProps> = ({ task, index }) => {
           ref={provided.innerRef}
           isDragging={snapshot.isDragging}
         >
+          {/* <Handle {...provided.dragHandleProps} /> */}
           {task.content}
         </Container>
       )}
