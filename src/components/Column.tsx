@@ -3,6 +3,11 @@ import { Droppable } from 'react-beautiful-dnd';
 import styled from 'styled-components';
 import Task from './Task';
 
+type TaskListProps = {
+  isDragginOver: boolean;
+  draggingOverWith?: string | number;
+};
+
 const Container = styled.div`
   margin: 8px;
   border: 1px solid lightgrey;
@@ -11,8 +16,10 @@ const Container = styled.div`
 const Title = styled.h3`
   padding: 8px;
 `;
-const TaskList = styled.div`
+const TaskList = styled.div<TaskListProps>`
   padding: 8px;
+  background-color: ${(props) => (props.isDragginOver ? 'skyblue' : 'white')};
+  transition: background-color 0.2s ease;
 `;
 
 type ColumnProps = {
@@ -42,8 +49,12 @@ const Column: FunctionComponent<ColumnProps> = ({ column, tasks }) => {
     <Container>
       <Title>{column.title}</Title>
       <Droppable droppableId={column.id}>
-        {(provided) => (
-          <TaskList ref={provided.innerRef} {...provided.droppableProps}>
+        {(provided, snapshot) => (
+          <TaskList
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            isDragginOver={snapshot.isDraggingOver}
+          >
             {tasks.map((task: any, index: number) => (
               <Task key={task.id} task={task} index={index} />
             ))}

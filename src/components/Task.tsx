@@ -7,12 +7,17 @@ type TaskProps = {
   index: number;
 };
 
-const Container = styled.div`
+type ContainerProps = {
+  isDragging: boolean;
+  draggingOver?: string | number;
+};
+
+const Container: any = styled.div<ContainerProps>`
   margin-bottom: 8px;
   border: 1px solid lightgrey;
   border-radius: 2px;
   padding: 8px;
-  background-color: white;
+  background-color: ${(props) => (props.isDragging ? 'lightgreen' : 'white')};
 `;
 
 /*
@@ -32,11 +37,12 @@ to your Draggable component
 const Task: FunctionComponent<TaskProps> = ({ task, index }) => {
   return (
     <Draggable draggableId={task.id} index={index}>
-      {(provided) => (
+      {(provided, snapshot) => (
         <Container
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           ref={provided.innerRef}
+          isDragging={snapshot.isDragging}
         >
           {task.content}
         </Container>
