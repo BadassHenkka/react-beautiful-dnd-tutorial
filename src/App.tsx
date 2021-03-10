@@ -1,26 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import initData from './init-data';
 import Column from './components/Column';
-import { DragDropContext } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable } from 'react-beautiful-dnd';
 import styled from 'styled-components';
 
 const Container = styled.div`
   display: flex;
 `;
 
+const InnerList = ({ column, taskMap, index }: any) => {
+  const tasks = column.taskIds.map((taskId: string) => taskMap[taskId]);
+  return <Column column={column} tasks={tasks} index={index} />;
+};
+
+memo(InnerList, (props, nextProps): any => {
+  if (
+    nextProps.column === props.column &&
+    nextProps.taskMap === props.taskMap &&
+    nextProps.index === props.index
+  ) {
+    return false;
+  }
+  return true;
+});
+
 const App = () => {
   const [boardState, setBoardState] = useState(initData);
-  const [homeIndex, setHomeIndex] = useState<number | string>('');
-
-  const onDragStart = (start: any) => {
-    const homeIdx = boardState.columnOrder.indexOf(start.source.droppableId);
-    setHomeIndex(homeIdx);
-  };
 
   const onDragEnd = (result: any) => {
-    setHomeIndex('');
-
-    const { destination, source, draggableId } = result;
+    const { type, destination, source, draggableId } = result;
 
     // No destination - ie. user dropped somewhere outside of droppable
     if (!destination) {
@@ -35,6 +43,20 @@ const App = () => {
       return;
     }
 
+    // Column reordering
+    if (type === 'column') {
+      const newColumnOrder = Array.from(boardState.columnOrder);
+      newColumnOrder.splice(source.index, 1);
+      newColumnOrder.splice(destination.index, 0, draggableId);
+
+      const newBoardState = {
+        ...boardState,
+        columnOrder: newColumnOrder,
+      };
+
+      setBoardState(newBoardState);
+      return;
+    }
     const startColumn = boardState.columns[source.droppableId];
     const endColumn = boardState.columns[destination.droppableId];
 
@@ -103,26 +125,27 @@ const App = () => {
     // All the components that you want to have dnd enabled
     // need to be wrapped inside a DragDropContext component which
     // has one required prop which is onDragEnd
-    <DragDropContext onDragEnd={onDragEnd} onDragStart={onDragStart}>
-      <Container>
-        {boardState.columnOrder.map((colId: string, index: number) => {
-          const column = boardState.columns[colId];
-          const tasks = column.taskIds.map(
-            (taskId: string) => boardState.tasks[taskId]
-          );
+    <DragDropContext onDragEnd={onDragEnd}>
+      <Droppable droppableId='all-columns' direction='horizontal' type='column'>
+        {(provided, snapshot) => (
+          <Container {...provided.droppableProps} ref={provided.innerRef}>
+            {boardState.columnOrder.map((colId: string, index: number) => {
+              const column = boardState.columns[colId];
 
-          const isDropDisabled = index < homeIndex;
-
-          return (
-            <Column
-              key={column.id}
-              column={column}
-              tasks={tasks}
-              //isDropDisabled={isDropDisabled}
-            />
-          );
-        })}
-      </Container>
+              return (
+                <InnerList
+                  key={column.id}
+                  index={index}
+                  column={column}
+                  taskMap={boardState.tasks}
+                  //isDropDisabled={isDropDisabled}
+                />
+              );
+            })}
+            {provided.placeholder}
+          </Container>
+        )}
+      </Droppable>
     </DragDropContext>
   );
 };
